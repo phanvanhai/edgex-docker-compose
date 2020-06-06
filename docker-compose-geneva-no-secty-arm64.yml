@@ -28,6 +28,7 @@ version: '3.4'
 x-common-env-variables: &common-variables
   EDGEX_SECURITY_SECRET_STORE: "false"
   Registry_Host: edgex-core-consul
+  Clients_System_Host: edgex-sys-mgmt-agent
   Clients_CoreData_Host: edgex-core-data
   Clients_Notifications_Host: edgex-support-notifications
   Clients_Metadata_Host: edgex-core-metadata
@@ -38,8 +39,8 @@ x-common-env-variables: &common-variables
   Databases_Primary_Host: edgex-redis
   # Required in case old configuration from previous release used.
   # Change to "true" if re-enabling logging service for remote logging
-  Logging_EnableRemote: "false"
-  #  Clients_Logging_Host: edgex-support-logging # un-comment if re-enabling logging service for remote logging
+  Logging_EnableRemote: "true"
+  Clients_Logging_Host: edgex-support-logging # un-comment if re-enabling logging service for remote logging
 
 volumes:
   db-data:
@@ -84,22 +85,22 @@ services:
 # If you still must use remote logging, un-comment the block below, all the related depends that have been commented out
 # and the related global override that are commented out at the top.
 #
-#  logging:
-#    image: edgexfoundry/docker-support-logging-go-arm64:1.2.0
-#    ports:
-#      - "127.0.0.1:48061:48061"
-#    container_name: edgex-support-logging
-#    hostname: edgex-support-logging
-#    networks:
-#      - edgex-network
-#    environment:
-#      <<: *common-variables
-#      Service_Host: edgex-support-logging
-#      Writable_Persistence: file
-#      Databases_Primary_Type: file
-#      Logging_EnableRemote: "false"
-#    depends_on:
-#      - consul
+  logging:
+    image: edgexfoundry/docker-support-logging-go-arm64:1.2.0
+    ports:
+      - "127.0.0.1:48061:48061"
+    container_name: edgex-support-logging
+    hostname: edgex-support-logging
+    networks:
+      - edgex-network
+    environment:
+      <<: *common-variables
+      Service_Host: edgex-support-logging
+      Writable_Persistence: file
+      Databases_Primary_Type: file
+      Logging_EnableRemote: "false"
+    depends_on:
+      - consul
 
   system:
     image: edgexfoundry/docker-sys-mgmt-agent-go-arm64:1.2.0
@@ -118,7 +119,7 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock:z
     depends_on:
       - consul
-#      - logging  # uncomment if re-enabled remote logging
+      - logging  # uncomment if re-enabled remote logging
       - scheduler
       - notifications
       - metadata
@@ -138,7 +139,7 @@ services:
       Service_Host: edgex-support-notifications
     depends_on:
       - consul
-#      - logging  # uncomment if re-enabled remote logging
+      - logging  # uncomment if re-enabled remote logging
       - redis
 
   metadata:
@@ -155,7 +156,7 @@ services:
       Notifications_Sender: edgex-core-metadata
     depends_on:
       - consul
-#      - logging  # uncomment if re-enabled remote logging
+      - logging  # uncomment if re-enabled remote logging
       - redis
       - notifications
 
@@ -173,7 +174,7 @@ services:
       Service_Host: edgex-core-data
     depends_on:
       - consul
-#      - logging  # uncomment if re-enabled remote logging
+      - logging  # uncomment if re-enabled remote logging
       - redis
       - metadata
 
@@ -190,7 +191,7 @@ services:
       Service_Host: edgex-core-command
     depends_on:
       - consul
-#      - logging  # uncomment if re-enabled remote logging
+      - logging  # uncomment if re-enabled remote logging
       - redis
       - metadata
 
@@ -209,7 +210,7 @@ services:
       IntervalActions_ScrubAged_Host: edgex-core-data
     depends_on:
       - consul
-#      - logging  # uncomment if re-enabled remote logging
+      - logging  # uncomment if re-enabled remote logging
       - redis
 
   app-service-rules:
@@ -231,7 +232,7 @@ services:
       Binding_PublishTopic: events
     depends_on:
       - consul
-#      - logging  # uncomment if re-enabled remote logging
+      - logging  # uncomment if re-enabled remote logging
       - data
 
   rulesengine:
@@ -273,7 +274,7 @@ services:
       Service_Host: mqtt-proxy
     depends_on:
       - consul
-      # - logging  # uncomment is re-enabled remote logging      
+      - logging  # uncomment is re-enabled remote logging
       - system     
 
 #################################################################
