@@ -259,7 +259,7 @@ services:
       - app-service-rules
 
   mqtt-proxy:
-    image: phanvanhai/docker-mqtt-proxy:v1.1.1-dev.1
+    image: phanvanhai/docker-mqtt-proxy-arm64:v1.1.1-dev.1
     ports:
       - "127.0.0.1:48095:48095"
     container_name: mqtt-proxy
@@ -280,7 +280,6 @@ services:
 #################################################################
 # Device Services
 #################################################################
-
   device-virtual:
     image: edgexfoundry/docker-device-virtual-go-arm64:1.2.0
     ports:
@@ -300,11 +299,38 @@ services:
       - data
       - metadata
 
+  device-zigbee:
+    image: phanvanhai/docker-zigbee-service-go-arm64:1.2.0
+    ports:
+      - "127.0.0.1:49997:49997"      
+    container_name: device-zigbee
+    hostname: device-zigbee
+    environment:
+      <<: *common-variables
+      Service_Host: device-zigbee
+      EDGEX_INSTANCE_NAME: device-zigbee
+      Driver_TransceiverPortSerial: /dev/ttyUSB0
+    devices:      
+      - /dev/ttyUSB0:/dev/ttyUSB0
+      - /dev/bus/usb:/dev/bus/usb
+    networks:
+      - edgex-network
+    volumes:      
+      - db-data:/data/db
+      - log-data:/edgex/logs
+      - consul-config:/consul/config
+      - consul-data:/consul/data
+    depends_on:
+      - consul
+      - logging  # uncomment is re-enabled remote logging
+      - data
+      - metadata
+
 #################################################################
 # UIs
 #################################################################  
   cloud-ui:
-    image: phanvanhai/docker-manager-tool-go:0.0.2
+    image: phanvanhai/docker-manager-tool-go-arm64:0.0.2
     ports:
       - "5000:5000"
     entrypoint: ./cloud-ui-server -conf=res/docker-http/configuration.toml
