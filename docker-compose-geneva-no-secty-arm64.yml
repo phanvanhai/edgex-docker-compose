@@ -273,7 +273,7 @@ services:
       Service_Host: mqtt-proxy
     depends_on:
       - consul
-      - logging  # uncomment is re-enabled remote logging      
+      # - logging  # uncomment is re-enabled remote logging      
       - system     
 
 #################################################################
