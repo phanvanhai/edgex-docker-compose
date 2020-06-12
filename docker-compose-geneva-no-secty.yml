@@ -58,9 +58,7 @@ services:
     container_name: edgex-core-consul
     hostname: edgex-core-consul
     networks:
-      edgex-network:
-        aliases:
-            - edgex-core-consul
+      - edgex-network
     volumes:
       - consul-config:/consul/config:z
       - consul-data:/consul/data:z
@@ -104,8 +102,7 @@ services:
       - consul
 
   system:
-    # image: edgexfoundry/docker-sys-mgmt-agent-go:1.2.0
-    image: phanvanhai/system-customize:latest
+    image: edgexfoundry/docker-sys-mgmt-agent-go:1.2.0
     ports:
       - "127.0.0.1:48090:48090"
     container_name: edgex-sys-mgmt-agent
@@ -215,29 +212,6 @@ services:
       - logging  # uncomment if re-enabled remote logging
       - redis
 
-  # app-service-mqtt:
-  #   image: edgexfoundry/docker-app-service-configurable:1.1.0
-  #   ports:
-  #     - "127.0.0.1:48101:48101"
-  #   container_name: appservice-mqtt-export
-  #   hostname: edgex-app-service-configurable-mqtt
-  #   networks:
-  #     edgex-network:
-  #       aliases:
-  #         - edgex-app-service-configurable-mqtt
-  #   environment:
-  #     <<: *common-variables
-  #     EDGEX_SERVICE_KEY: appservice-<profile>
-  #     edgex_profile: mqtt-export
-  #     Service_Host: edgex-app-service-configurable-mqtt
-  #     Service_Port: 48101
-  #     MessageBus_SubscribeHost_Host: edgex-core-data
-  #     Binding_PublishTopic: events
-  #   depends_on:
-  #     - consul
-  #     - logging  # uncomment if re-enabled remote logging
-  #     - data
-
   app-service-rules:
     image: edgexfoundry/docker-app-service-configurable:1.1.0
     ports:
@@ -245,9 +219,7 @@ services:
     container_name: edgex-app-service-configurable-rules
     hostname: edgex-app-service-configurable-rules
     networks:
-      edgex-network:
-        aliases:
-          - edgex-app-service-configurable-rules
+      - edgex-network
     environment:
       <<: *common-variables
       edgex_profile: rules-engine
@@ -261,16 +233,14 @@ services:
       - data
 
   rulesengine:
-    image: emqx/kuiper:0.3.2
+    image: emqx/kuiper:0.4.2
     ports:
       - "127.0.0.1:48075:48075"
       - "127.0.0.1:20498:20498"
     container_name: edgex-kuiper
     hostname: edgex-kuiper
     networks:
-      edgex-network:
-        aliases:
-          - edgex-kuiper
+      - edgex-network
     environment:
       # KUIPER_DEBUG: "true"
       KUIPER_CONSOLE_LOG: "true"
@@ -284,15 +254,13 @@ services:
       - app-service-rules
 
   mqtt-proxy:
-    image: phanvanhai/docker-mqtt-proxy:v1.1.1-dev.1
+    image: phanvanhai/docker-mqtt-proxy:v1.2.0
     ports:
       - "127.0.0.1:48095:48095"
     container_name: mqtt-proxy
     hostname: mqtt-proxy
     networks:
-      edgex-network:
-        aliases:
-          - mqtt-proxy
+      - edgex-network
     environment:
       <<: *common-variables
       edgex_service: http://mqtt-proxy:48095      
@@ -305,28 +273,8 @@ services:
 #################################################################
 # Device Services
 #################################################################
-
-  # device-virtual:
-  #   image: edgexfoundry/docker-device-virtual-go:1.2.0
-  #   ports:
-  #   - "127.0.0.1:49990:49990"
-  #   container_name: edgex-device-virtual
-  #   hostname: edgex-device-virtual
-  #   networks:
-  #     edgex-network:
-  #       aliases:
-  #       - edgex-device-virtual
-  #   environment:
-  #     <<: *common-variables
-  #     Service_Host: edgex-device-virtual
-  #   depends_on:
-  #     - consul
-  #     - logging  # uncomment if re-enabled remote logging
-  #     - data
-  #     - metadata
-
   device-zigbee:
-    image: phanvanhai/docker-zigbee-service-go:1.2.0
+    image: phanvanhai/docker-zigbee-service-go:1.2.2
     ports:
       - "127.0.0.1:49997:49997"      
     container_name: device-zigbee
@@ -334,12 +282,12 @@ services:
     environment:
       <<: *common-variables
       Service_Host: device-zigbee
-      EDGEX_INSTANCE_NAME: device-zigbee
-      Driver_TransceiverPortSerial: /dev/tnt0
+      EDGEX_INSTANCE_NAME: zigbee
+      Driver_TransceiverPortSerial: /dev/ttyUSB0
     devices:
-      - /dev/tnt0:/dev/tnt0    
-      # - /dev/ttyUSB0:/dev/ttyUSB0
-      - /dev/bus/usb:/dev/bus/usb
+      # - /dev/tnt0    
+      - /dev/ttyUSB0
+      - /dev/bus/usb
     networks:
       - edgex-network
     volumes:      
@@ -347,11 +295,9 @@ services:
       - log-data:/edgex/logs
       - consul-config:/consul/config
       - consul-data:/consul/data
-    depends_on:
-      - consul
-      - logging  # uncomment is re-enabled remote logging
-      - data
-      - metadata
+    depends_on:            
+      - data      
+      - command
 
 #################################################################
 # UIs
@@ -369,17 +315,16 @@ services:
       - logging  # uncomment is re-enabled remote logging
       - system
 
-  cloud-ui:
-    image: phanvanhai/docker-cloud-ui-go:0.0.2
+  manager-ui:
+    image: phanvanhai/docker-manager-tool-go:1.2.2
     ports:
       - "5000:5000"
     entrypoint: ./cloud-ui-server -conf=res/docker-http/configuration.toml
-    container_name: cloud-ui-go
-    hostname: cloud-ui-go
+    container_name: manager-ui-go
+    hostname: manager-ui-go
     networks:
       - edgex-network
       
 networks:
   edgex-network:
     driver: "bridge"
-
