@@ -303,7 +303,7 @@ services:
 # UIs
 #################################################################
   config-ui:
-    image: phanvanhai/docker-edgex-ui-go-arm64:1.1.0
+    image: phanvanhai/docker-config-ui-go-arm64:1.1.0
     ports:
       - "3000:3000"
     container_name: config-ui-go
