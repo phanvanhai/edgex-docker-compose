@@ -85,7 +85,7 @@ services:
 # and the related global override that are commented out at the top.
 #
   logging:
-    image: edgexfoundry/docker-support-logging-go-arm64:1.2.0
+    image: edgexfoundry/docker-support-logging-go-arm64:1.2.1
     ports:
       - "127.0.0.1:48061:48061"
     container_name: edgex-support-logging
@@ -98,11 +98,12 @@ services:
       Writable_Persistence: file
       Databases_Primary_Type: file
       Logging_EnableRemote: "false"
+      Logging_File: /edgex/logs/edgex-support-logging.log
     depends_on:
       - consul
 
   system:
-    image: edgexfoundry/docker-sys-mgmt-agent-go-arm64:1.2.0
+    image: edgexfoundry/docker-sys-mgmt-agent-go-arm64:1.2.1
     ports:
       - "127.0.0.1:48090:48090"
     container_name: edgex-sys-mgmt-agent
@@ -126,7 +127,7 @@ services:
       - command
 
   notifications:
-    image: edgexfoundry/docker-support-notifications-go-arm64:1.2.0
+    image: edgexfoundry/docker-support-notifications-go-arm64:1.2.1
     ports:
       - "127.0.0.1:48060:48060"
     container_name: edgex-support-notifications
@@ -142,7 +143,7 @@ services:
       - redis
 
   metadata:
-    image: edgexfoundry/docker-core-metadata-go-arm64:1.2.0
+    image: edgexfoundry/docker-core-metadata-go-arm64:1.2.1
     ports:
       - "127.0.0.1:48081:48081"
     container_name: edgex-core-metadata
@@ -160,7 +161,7 @@ services:
       - notifications
 
   data:
-    image: edgexfoundry/docker-core-data-go-arm64:1.2.0
+    image: edgexfoundry/docker-core-data-go-arm64:1.2.1
     ports:
       - "127.0.0.1:48080:48080"
       - "127.0.0.1:5563:5563"
@@ -178,7 +179,7 @@ services:
       - metadata
 
   command:
-    image: edgexfoundry/docker-core-command-go-arm64:1.2.0
+    image: edgexfoundry/docker-core-command-go-arm64:1.2.1
     ports:
       - "127.0.0.1:48082:48082"
     container_name: edgex-core-command
@@ -195,7 +196,7 @@ services:
       - metadata
 
   scheduler:
-    image: edgexfoundry/docker-support-scheduler-go-arm64:1.2.0
+    image: edgexfoundry/docker-support-scheduler-go-arm64:1.2.1
     ports:
       - "127.0.0.1:48085:48085"
     container_name: edgex-support-scheduler
@@ -213,7 +214,7 @@ services:
       - redis
 
   app-service-rules:
-    image: edgexfoundry/docker-app-service-configurable-arm64:1.1.0
+    image: edgexfoundry/docker-app-service-configurable-arm64:1.2.0
     ports:
       - "127.0.0.1:48100:48100"
     container_name: edgex-app-service-configurable-rules
@@ -233,7 +234,7 @@ services:
       - data
 
   rulesengine:
-    image: emqx/kuiper:0.4.2
+    image: emqx/kuiper:0.4.2-alpine
     ports:
       - "127.0.0.1:48075:48075"
       - "127.0.0.1:20498:20498"
@@ -253,6 +254,23 @@ services:
     depends_on:
       - app-service-rules
 
+  mqtt-proxy:
+    image: phanvanhai/docker-mqtt-proxy-arm64:v1.2.0
+    ports:
+      - "127.0.0.1:48095:48095"
+    container_name: mqtt-proxy
+    hostname: mqtt-proxy
+    networks:
+      - edgex-network
+    environment:
+      <<: *common-variables
+      edgex_service: http://mqtt-proxy:48095      
+      Service_Host: mqtt-proxy
+    depends_on:
+      - consul
+      - logging  # uncomment is re-enabled remote logging      
+      - system
+
 #################################################################
 # Device Services
 #################################################################
@@ -266,7 +284,7 @@ services:
       <<: *common-variables
       Service_Host: device-zigbee
       EDGEX_INSTANCE_NAME: zigbee
-      Driver_TransceiverPortSerial: /dev/ttyUSB0
+      Driver_TransferPortSerial: /dev/ttyUSB0
     devices:      
       - /dev/ttyUSB0
       - /dev/bus/usb
@@ -284,18 +302,18 @@ services:
 #################################################################
 # UIs
 #################################################################
-  # config-ui:
-  #   image: phanvanhai/docker-edgex-ui-go:1.1.0
-  #   ports:
-  #     - "3000:3000"
-  #   container_name: edgex-ui-go
-  #   hostname: edgex-ui-go
-  #   networks:
-  #     - edgex-network
-  #   depends_on:
-  #     - consul
-  #     - logging  # uncomment is re-enabled remote logging
-  #     - system
+  config-ui:
+    image: phanvanhai/docker-edgex-ui-go-arm64:1.1.0
+    ports:
+      - "3000:3000"
+    container_name: config-ui-go
+    hostname: config-ui-go
+    networks:
+      - edgex-network
+    depends_on:
+      - consul
+      - logging  # uncomment is re-enabled remote logging
+      - system
 
   manager-ui:
     image: phanvanhai/docker-manager-tool-go-arm64:1.2.2
