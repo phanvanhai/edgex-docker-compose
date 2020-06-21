@@ -283,10 +283,8 @@ services:
     environment:
       <<: *common-variables
       Service_Host: device_zigbee
-      EDGEX_INSTANCE_NAME: zigbee
-      Driver_TransferPortSerial: /dev/ttyUSB0  
-    devices:
-      # - /dev/tnt0
+      EDGEX_INSTANCE_NAME: zigbee       
+    devices:      
       - /dev/ttyUSB0
       - /dev/bus/usb
     networks:
