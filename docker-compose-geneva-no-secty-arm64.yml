@@ -278,11 +278,11 @@ services:
     image: phanvanhai/docker-zigbee-service-go-arm64:1.2.2
     ports:
       - "127.0.0.1:49997:49997"      
-    container_name: device-zigbee
-    hostname: device-zigbee
+    container_name: device_zigbee
+    hostname: device_zigbee
     environment:
       <<: *common-variables
-      Service_Host: device-zigbee
+      Service_Host: device_zigbee
       EDGEX_INSTANCE_NAME: zigbee      
     devices:      
       - /dev/ttyUSB0
